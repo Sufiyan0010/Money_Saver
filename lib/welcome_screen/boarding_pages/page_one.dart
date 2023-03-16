@@ -26,7 +26,10 @@ class PageOne extends StatelessWidget {
               ),
               
              
-            Lottie.asset('assets/Comp.json')
+            SizedBox(
+              height: MediaQuery.of(context).size.height *0.5,
+              width: MediaQuery.of(context).size.height *0.5,
+              child: Lottie.asset('assets/Comp.json'))
             ],
           ),
         ),

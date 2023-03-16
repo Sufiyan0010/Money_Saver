@@ -15,7 +15,7 @@ class PageTwo extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Padding(
-              padding: const EdgeInsets.only(left: 15,top: 30),
+              padding: const EdgeInsets.only(left: 15, top: 30),
               child: Text(
                 'TRACK YOUR \nEXPENSES \nAND\nSAVE YOUR \nMONEY HERE...',
                 style: TextStyle(
@@ -26,9 +26,12 @@ class PageTwo extends StatelessWidget {
               ),
             ),
             const SizedBox(
-              height: 60,
+              height: 30,
             ),
-            Lottie.asset('assets/savemoney.json'),
+            SizedBox(
+                height: MediaQuery.of(context).size.height * 0.5,
+                width: MediaQuery.of(context).size.height * 0.5,
+                child: Lottie.asset('assets/savemoney.json')),
           ],
         ),
       ),
