@@ -4,7 +4,8 @@ import 'package:hive_flutter/adapters.dart';
 
 import 'package:money_saver/models/category_model/category_model.dart';
 import 'package:money_saver/models/transactions_model/transaction_model.dart';
-import 'package:money_saver/splash/splash.dart';
+
+import 'package:money_saver/view/splash/splash.dart';
 
 
 Future<void> main() async {
