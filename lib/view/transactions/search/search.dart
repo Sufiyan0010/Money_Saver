@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:money_saver/controller/transactions_db/transaction_db.dart';
-import 'package:money_saver/view/transactions/transactions.dart';
 import 'package:money_saver/core/styles.dart';
+import 'package:provider/provider.dart';
 
 class SearchField extends StatelessWidget {
   SearchField({super.key});
@@ -25,7 +25,7 @@ class SearchField extends StatelessWidget {
                 color: blueShade),
             controller: searchController,
             onChanged: (result) {
-              searchResult(result);
+              searchResult(result, context);
             },
             decoration: InputDecoration(
                 hintText: 'Search Here',
@@ -42,9 +42,16 @@ class SearchField extends StatelessWidget {
                 ),
                 suffixIcon: IconButton(
                   onPressed: () {
-                    overViewNotifier.value =
-                        TransactionDb.instance.transactionListNotifier.value;
                     searchController.clear();
+                    context.read<TransactionProvider>().overviewTransaction =
+                        context
+                            .read<TransactionProvider>()
+                            .transactionListProvider;
+                    context.read<TransactionProvider>().notifyListeners();
+
+                    // overViewNotifier.value =
+                    //     TransactionDb.instance.transactionListNotifier.value;
+                    // searchController.clear();
                   },
                   icon: const Icon(
                     Icons.close,
@@ -58,12 +65,18 @@ class SearchField extends StatelessWidget {
     );
   }
 
-  searchResult(String result) {
+  searchResult(String result, BuildContext context) {
     if (result.isEmpty) {
-      overViewNotifier.value =
-          TransactionDb.instance.transactionListNotifier.value;
+      context.read<TransactionProvider>().overviewTransaction =
+          context.read<TransactionProvider>().transactionListProvider;
+      context.read<TransactionProvider>().notifyListeners();
+
+      // overViewNotifier.value =
+      //     TransactionDb.instance.transactionListNotifier.value;
     } else {
-      overViewNotifier.value = overViewNotifier.value
+      context.read<TransactionProvider>().overviewTransaction = context
+          .read<TransactionProvider>()
+          .overviewTransaction
           .where((element) =>
               element.category.name
                   .toLowerCase()
@@ -72,8 +85,7 @@ class SearchField extends StatelessWidget {
                   .toLowerCase()
                   .contains(result.trim().toLowerCase()))
           .toList();
+      context.read<TransactionProvider>().notifyListeners();
     }
   }
-
-
 }

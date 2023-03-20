@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
-
-import 'package:money_saver/view/insights/all_graph.dart';
+import 'package:money_saver/controller/transactions_db/transaction_db.dart';
 import 'package:money_saver/models/category_model/category_model.dart';
 import 'package:money_saver/core/styles.dart';
+import 'package:provider/provider.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 
 import '../../models/transactions_model/transaction_model.dart';
@@ -16,21 +16,19 @@ class ExpenseGraph extends StatelessWidget {
     return SafeArea(
       child: Scaffold(
         backgroundColor: bodyColor,
-        body: ValueListenableBuilder(
-          valueListenable: graphNotifier,
-          builder: (BuildContext context, List<TransactionModel> newList,
-              Widget? child) {
-            var allExpense = newList
+        body: Consumer<TransactionProvider>(
+          builder: (context, value, child) {
+            var allExpense = value.overviewGraphTransaction
                 .where((element) => element.type == CategoryType.expense)
                 .toList();
-            return graphNotifier.value.isEmpty
+            return allExpense.isEmpty
                 ? SingleChildScrollView(
                     child: Center(
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Padding(
-                            padding: const EdgeInsets.only(top:150),
+                            padding: const EdgeInsets.only(top: 150),
                             child: Lottie.asset('assets/socialnodata.json',
                                 width: 200),
                           )
@@ -39,9 +37,8 @@ class ExpenseGraph extends StatelessWidget {
                     ),
                   )
                 : Padding(
-                  padding: const EdgeInsets.only(bottom:80),
-                  child: SfCircularChart(
-                      
+                    padding: const EdgeInsets.only(bottom: 80),
+                    child: SfCircularChart(
                       series: <CircularSeries>[
                         DoughnutSeries<TransactionModel, String>(
                             innerRadius: '100',
@@ -81,7 +78,7 @@ class ExpenseGraph extends StatelessWidget {
                         overflowMode: LegendItemOverflowMode.scroll,
                       ),
                     ),
-                );
+                  );
           },
         ),
       ),

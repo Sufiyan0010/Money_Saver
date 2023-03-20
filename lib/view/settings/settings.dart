@@ -127,7 +127,7 @@ class SettingsPage extends StatelessWidget {
                   ListTile(
                     onTap: () {
                       Share.share(
-                          'Hello,Every one! Check Out Our New App https://play.google.com');
+                          'Hello,Every one! Check Out Our New App https://play.google.com/store/apps/details?id=in.brototype.money_saver');
                     },
                     leading: const Icon(
                       Icons.share,

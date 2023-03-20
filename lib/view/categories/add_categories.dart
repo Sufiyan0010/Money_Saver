@@ -1,13 +1,16 @@
 import 'package:animated_snack_bar/animated_snack_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:money_saver/controller/category_db/category_db.dart';
+import 'package:money_saver/controller/category_db/category_type_provider.dart';
 import 'package:money_saver/models/category_model/category_model.dart';
+import 'package:provider/provider.dart';
 import '../../core/styles.dart';
 
-ValueNotifier<CategoryType> selectedCategoryNotifier =
-    ValueNotifier(CategoryType.income);
+//ValueNotifier<CategoryType> selectedCategoryNotifier =
+//  ValueNotifier(CategoryType.income);
 
-Future showCategoryPopup(BuildContext context) async {
+Future showCategoryPopup(BuildContext context,
+    [CategoryType? categoryType]) async {
   final catgeoryNameController = TextEditingController();
 
   showDialog(
@@ -41,7 +44,6 @@ Future showCategoryPopup(BuildContext context) async {
                 RadioButton(
                   title: 'Expense',
                   type: CategoryType.expense,
-                  
                 ),
               ],
             ),
@@ -66,8 +68,6 @@ Future showCategoryPopup(BuildContext context) async {
                 ),
                 border: const OutlineInputBorder(),
                 hintText: 'Enter Category',
-                
-              
               ),
             ),
           ),
@@ -85,16 +85,16 @@ Future showCategoryPopup(BuildContext context) async {
                     if (categoryName.isEmpty) {
                       return;
                     }
-                    final notifierType = selectedCategoryNotifier.value;
-                    final notifierCategory = CategoryModel(
+                    final type = Provider.of<CategoryTypeProvider>(context,listen: false).selectedCatgoryProvider;
+                    final category = CategoryModel(
                       id: DateTime.now().millisecondsSinceEpoch.toString(),
                       name: categoryName,
-                      type: notifierType,
+                      type: type,
                     );
-                    CategoryDB.instance.insertCategory(notifierCategory);
+                    context.read<CategoryProvider>().insertCategory(category);
+                    //  CategoryDB.instance.insertCategory(notifierCategory);
                     Navigator.of(ctx).pop();
                     AnimatedSnackBar.material(
-                      
                       'Category added Successfully',
                       borderRadius: BorderRadius.circular(20),
                       type: AnimatedSnackBarType.success,
@@ -123,7 +123,7 @@ Future showCategoryPopup(BuildContext context) async {
 class RadioButton extends StatelessWidget {
   final String title;
   final CategoryType type;
- const RadioButton({
+  const RadioButton({
     Key? key,
     required this.title,
     required this.type,
@@ -133,19 +133,17 @@ class RadioButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        ValueListenableBuilder(
-          valueListenable: selectedCategoryNotifier,
-          builder: (BuildContext ctx, CategoryType newCategory, Widget? _) {
+        Consumer<CategoryTypeProvider>(
+          // valueListenable: selectedCategoryNotifier,
+          builder: (context, newCategory, child) {
             return Radio<CategoryType>(
               fillColor: MaterialStatePropertyAll(greenShade),
               value: type,
-              groupValue: selectedCategoryNotifier.value,
+              groupValue: newCategory.selectedCatgoryProvider,
               onChanged: (value) {
-                if (value == null) {
-                  return;
-                }
-                selectedCategoryNotifier.value = value;
-                selectedCategoryNotifier.notifyListeners();
+                context
+                    .read<CategoryTypeProvider>()
+                    .onChanging(value,newCategory);
               },
             );
           },

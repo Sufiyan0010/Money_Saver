@@ -1,15 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:money_saver/controller/category_db/category_db.dart';
-import 'package:money_saver/controller/total_balance.dart';
 import 'package:money_saver/controller/transactions_db/transaction_db.dart';
-import 'package:money_saver/view/insights/all_graph.dart';
 import 'package:money_saver/view/insights/only_graph.dart';
 import 'package:money_saver/view/transactions/add_transaction/add_transactions.dart';
 import 'package:money_saver/view/transactions/all_transactions.dart';
 import 'package:money_saver/view/transactions/recent_transactions.dart';
-import 'package:money_saver/models/transactions_model/transaction_model.dart';
 import 'package:money_saver/core/styles.dart';
 import 'package:page_transition/page_transition.dart';
+import 'package:provider/provider.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -20,20 +17,27 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   bool isGraph = false;
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
-      incomeAndExpense();
-      graphNotifier.value =
-          TransactionDb.instance.transactionListNotifier.value;
-    });
-  }
+  // @override
+  // void initState() {
+  //   super.initState();
+  //   WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+  //     incomeAndExpense();
+  //     graphNotifier.value =
+  //         TransactionDb.instance.transactionListNotifier.value;
+  //   });
+  // }
 
   @override
   Widget build(BuildContext context) {
-    CategoryDB.instance.refreshUI();
-    TransactionDb.instance.refresh();
+    // CategoryDB.instance.refreshUI();
+    // TransactionDb.instance.refresh();
+
+    WidgetsBinding.instance.addPostFrameCallback(
+      (timeStamp) {
+        context.read<TransactionProvider>().overviewGraphTransaction =
+            context.read<TransactionProvider>().transactionListProvider;
+      },
+    );
 
     return Scaffold(
       backgroundColor: bodyColor,
@@ -83,157 +87,146 @@ class _HomeScreenState extends State<HomeScreen> {
                                 top: 20,
                                 bottom: 30,
                               ),
-                              child: Column(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  ValueListenableBuilder(
-                                    valueListenable: totalBlanace,
-                                    builder: (BuildContext context, value,
-                                        Widget? child) {
-                                      return Padding(
-                                        padding: const EdgeInsets.all(10),
-                                        child: Column(
+                              child: Consumer<TransactionProvider>(builder:
+                                  (context, incomeAndExpenseProvider, child) {
+                                return Column(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Padding(
+                                      padding: const EdgeInsets.all(10),
+                                      child: Column(
+                                        children: [
+                                          Text(
+                                            incomeAndExpenseProvider
+                                                        .totalBalance <
+                                                    0
+                                                ? 'Total Lose'
+                                                : 'Total Balance',
+                                            style: TextStyle(
+                                              color: bodyColor,
+                                              fontFamily: 'hubballi',
+                                              fontSize: 25,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                          const SizedBox(
+                                            height: 5,
+                                          ),
+                                          Text(
+                                            incomeAndExpenseProvider
+                                                        .totalBalance <
+                                                    0
+                                                ? '₹${incomeAndExpenseProvider.totalBalance.toString()}'
+                                                : '₹${incomeAndExpenseProvider.totalBalance.toString()}',
+                                            style: TextStyle(
+                                              color: incomeAndExpenseProvider
+                                                          .totalBalance <
+                                                      0
+                                                  ? expenseColor
+                                                  : incomeColor,
+                                              fontFamily: 'hubballi',
+                                              fontSize: 22,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceEvenly,
+                                      children: [
+                                        Column(
                                           children: [
-                                            Text(
-                                              totalBlanace.value < 0
-                                                  ? 'Total Lose'
-                                                  : 'Total Balance',
-                                              style: TextStyle(
-                                                color: bodyColor,
-                                                fontFamily: 'hubballi',
-                                                fontSize: 25,
-                                                fontWeight: FontWeight.bold,
-                                              ),
+                                            Row(
+                                              children: [
+                                                CircleAvatar(
+                                                  radius: 13,
+                                                  backgroundColor: whiteShade,
+                                                  child: const Icon(
+                                                    Icons.arrow_downward,
+                                                    color: Colors.green,
+                                                    size: 22,
+                                                  ),
+                                                ),
+                                                const SizedBox(
+                                                  width: 5,
+                                                ),
+                                                const Text(
+                                                  'Income',
+                                                  style: TextStyle(
+                                                    color: Colors.green,
+                                                    fontSize: 22,
+                                                    fontFamily: 'hubballi',
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
+                                                ),
+                                              ],
                                             ),
                                             const SizedBox(
                                               height: 5,
                                             ),
                                             Text(
-                                              totalBlanace.value < 0
-                                                  ? '₹${totalBlanace.value.toString()}'
-                                                  : '₹${totalBlanace.value.toString()}',
+                                              '₹${incomeAndExpenseProvider.incomeTotal}',
                                               style: TextStyle(
-                                                color: totalBlanace.value < 0
-                                                    ? expenseColor
-                                                    : incomeColor,
+                                                color: bodyColor,
                                                 fontFamily: 'hubballi',
-                                                fontSize: 22,
+                                                fontSize: 20,
                                                 fontWeight: FontWeight.bold,
                                               ),
                                             ),
                                           ],
                                         ),
-                                      );
-                                    },
-                                  ),
-                                  Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceEvenly,
-                                    children: [
-                                      ValueListenableBuilder(
-                                        valueListenable: incomeTotal,
-                                        builder: (BuildContext context,
-                                            dynamic value, Widget? child) {
-                                          return Column(
-                                            children: [
-                                              Row(
-                                                children: [
-                                                  CircleAvatar(
-                                                    radius: 13,
-                                                    backgroundColor: whiteShade,
-                                                    child:const Icon(
-                                                      Icons.arrow_downward,
-                                                      color: Colors.green,
-                                                      size: 22,
-                                                    ),
+                                        Column(
+                                          children: [
+                                            Row(
+                                              children: [
+                                                CircleAvatar(
+                                                  radius: 13,
+                                                  backgroundColor: whiteShade,
+                                                  child: const Icon(
+                                                    Icons.arrow_upward,
+                                                    color: Colors.red,
+                                                    size: 22,
                                                   ),
-                                                  const SizedBox(
-                                                    width: 5,
-                                                  ),
-                                                 const Text(
-                                                    'Income',
-                                                    style: TextStyle(
-                                                      color: Colors.green,
-                                                      fontSize: 22,
-                                                      fontFamily: 'hubballi',
-                                                      fontWeight:
-                                                          FontWeight.bold,
-                                                    ),
-                                                  ),
-                                                ],
-                                              ),
-                                              const SizedBox(
-                                                height: 5,
-                                              ),
-                                              Text(
-                                                '₹${incomeTotal.value}',
-                                                style: TextStyle(
-                                                  color: bodyColor,
-                                                  fontFamily: 'hubballi',
-                                                  fontSize: 20,
-                                                  fontWeight: FontWeight.bold,
                                                 ),
-                                              ),
-                                            ],
-                                          );
-                                        },
-                                      ),
-                                      ValueListenableBuilder(
-                                        valueListenable: expenseTotal,
-                                        builder: (BuildContext context,
-                                            dynamic value, Widget? child) {
-                                          return Column(
-                                            children: [
-                                              Row(
-                                                children: [
-                                                  CircleAvatar(
-                                                    radius: 13,
-                                                    backgroundColor: whiteShade,
-                                                    child:const Icon(
-                                                      Icons.arrow_upward,
-                                                      color: Colors.red,
-                                                      size: 22,
-                                                    ),
-                                                  ),
-                                                  const SizedBox(
-                                                    width: 5,
-                                                  ),
-                                                const  Text(
-                                                    'Expense',
-                                                    style: TextStyle(
-                                                      color: Colors.red,
-                                                      fontSize: 22,
-                                                      fontFamily: 'hubballi',
-                                                      fontWeight:
-                                                          FontWeight.bold,
-                                                    ),
-                                                  ),
-                                                ],
-                                              ),
-                                              const SizedBox(
-                                                height: 5,
-                                              ),
-                                              Text(
-                                                '₹${expenseTotal.value.toString()}',
-                                                style: TextStyle(
-                                                  color: bodyColor,
-                                                  fontFamily: 'hubballi',
-                                                  fontSize: 20,
-                                                  fontWeight: FontWeight.bold,
+                                                const SizedBox(
+                                                  width: 5,
                                                 ),
+                                                const Text(
+                                                  'Expense',
+                                                  style: TextStyle(
+                                                    color: Colors.red,
+                                                    fontSize: 22,
+                                                    fontFamily: 'hubballi',
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                            const SizedBox(
+                                              height: 5,
+                                            ),
+                                            Text(
+                                              '₹${incomeAndExpenseProvider.expenseTotal.toString()}',
+                                              style: TextStyle(
+                                                color: bodyColor,
+                                                fontFamily: 'hubballi',
+                                                fontSize: 20,
+                                                fontWeight: FontWeight.bold,
                                               ),
-                                            ],
-                                          );
-                                        },
-                                      ),
-                                    ],
-                                  )
-                                ],
-                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ],
+                                    )
+                                  ],
+                                );
+                              }),
                             )
-                          : const Padding(
-                              padding: EdgeInsets.only(left: 40),
+                          : Padding(
+                              padding: const EdgeInsets.only(left: 40),
                               child: OnlyGraph(),
                             )),
                 ),
@@ -246,7 +239,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         isGraph = !isGraph;
                       });
                     },
-                    icon:  Icon(
+                    icon: Icon(
                       Icons.bar_chart,
                       color: bodyColor,
                       size: 35,
@@ -271,55 +264,49 @@ class _HomeScreenState extends State<HomeScreen> {
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  ValueListenableBuilder(
-                      valueListenable:
-                          TransactionDb.instance.transactionListNotifier,
-                      builder: (BuildContext context,
-                          List<TransactionModel> newList, Widget? _) {
-                        return newList.isEmpty
-                            ? ElevatedButton(
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: blueShade,
-                                  elevation: 0,
-                                  shape: const StadiumBorder(),
-                                ),
-                                onPressed: () {
-                                 
-                                },
-                                child: Text(
-                                  'No Data!',
-                                  style: TextStyle(
-                                    color: whiteShade,
-                                    fontFamily: 'hubballi',
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ))
-                            : ElevatedButton(
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: greenShade,
-                                  elevation: 0,
-                                  shape: const StadiumBorder(),
-                                ),
-                                onPressed: () {
-                                  Navigator.push(
-                                      context,
-                                      PageTransition(
-                                          child: const AllTransactions(),
-                                          type: PageTransitionType.fade,
-                                          duration: const Duration(
-                                              milliseconds: 500)));
-                                },
-                                child: Text(
-                                  'View all',
-                                  style: TextStyle(
-                                    color: whiteShade,
-                                    fontFamily: 'hubballi',
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ));
-                      })
+                  Consumer<TransactionProvider>(builder: (context, newList, _) {
+                    return newList.transactionListProvider.isEmpty
+                        ? ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: blueShade,
+                              elevation: 0,
+                              shape: const StadiumBorder(),
+                            ),
+                            onPressed: () {},
+                            child: Text(
+                              'No Data!',
+                              style: TextStyle(
+                                color: whiteShade,
+                                fontFamily: 'hubballi',
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ))
+                        : ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: greenShade,
+                              elevation: 0,
+                              shape: const StadiumBorder(),
+                            ),
+                            onPressed: () {
+                              Navigator.push(
+                                  context,
+                                  PageTransition(
+                                      child: const AllTransactions(),
+                                      type: PageTransitionType.fade,
+                                      duration:
+                                          const Duration(milliseconds: 500)));
+                            },
+                            child: Text(
+                              'View all',
+                              style: TextStyle(
+                                color: whiteShade,
+                                fontFamily: 'hubballi',
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ));
+                  })
                 ],
               )
             ]),
@@ -332,11 +319,12 @@ class _HomeScreenState extends State<HomeScreen> {
           Navigator.push(
             context,
             MaterialPageRoute(builder: (context) => const AddTransastion()),
-          ).whenComplete(() {
-            setState(() {
-              incomeAndExpense();
-            });
-          });
+          );
+          // .whenComplete(() {
+          //   setState(() {
+          //     incomeAndExpense();
+          //   });
+          // });
         },
         backgroundColor: greenShade,
         shape: RoundedRectangleBorder(

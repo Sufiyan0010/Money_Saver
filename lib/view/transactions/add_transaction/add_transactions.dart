@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:money_saver/controller/category_db/category_db.dart';
 import 'package:money_saver/controller/transactions_db/transaction_db.dart';
-
+import 'package:provider/provider.dart';
+import '../../../controller/category_db/category_db.dart';
 import '../../../core/styles.dart';
 import 'widgets/fields.dart';
 
@@ -10,8 +10,11 @@ class AddTransastion extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    TransactionDb.instance.refresh();
-    CategoryDB.instance.refreshUI();
+    WidgetsBinding.instance.addPostFrameCallback((timeStamp) =>
+        Provider.of<CategoryProvider>(context, listen: false).refreshUI());
+
+    Provider.of<TransactionProvider>(context, listen: false).refresh();
+  
     return Scaffold(
       backgroundColor: bodyColor,
       appBar: AppBar(
@@ -29,7 +32,7 @@ class AddTransastion extends StatelessWidget {
       ),
       body: ListView(
         padding: const EdgeInsets.all(20),
-        children: const [
+        children:  [
           Fields(),
         ],
       ),

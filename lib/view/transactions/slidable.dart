@@ -7,7 +7,7 @@ import 'package:money_saver/controller/transactions_db/transaction_db.dart';
 import 'package:money_saver/view/transactions/edit_transaction/edit_transaction.dart';
 
 import 'package:money_saver/models/transactions_model/transaction_model.dart';
-
+import 'package:provider/provider.dart';
 
 import '../../models/category_model/category_model.dart';
 import '../../core/styles.dart';
@@ -27,7 +27,7 @@ class SlidableTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    TransactionDb.instance.refresh();
+    // TransactionDb.instance.refresh();
     return Slidable(
       endActionPane: ActionPane(
         motion: const StretchMotion(),
@@ -79,7 +79,8 @@ class SlidableTile extends StatelessWidget {
                       actions: [
                         TextButton(
                             onPressed: (() {
-                              TransactionDb.instance
+                              Provider.of<TransactionProvider>(context,
+                                      listen: false)
                                   .deleteTransaction(transaction);
                               Navigator.of(context).pop();
 
@@ -125,52 +126,54 @@ class SlidableTile extends StatelessWidget {
         ],
       ),
       child: Card(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(15),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(15),
+        ),
+        elevation: 10,
+        color: whiteShade,
+        child: ListTile(
+          leading: CircleAvatar(
+              backgroundColor: blueShade,
+              radius: 18,
+              child: Icon(
+                transaction.type == CategoryType.income
+                    ? Icons.arrow_downward
+                    : Icons.arrow_upward,
+                color: transaction.type == CategoryType.income
+                    ? incomeColor
+                    : expenseColor,
+                size: 22,
+              )),
+          title: Text(
+            '₹${transaction.amount}',
+            style: TextStyle(
+              color: blueShade,
+              fontFamily: 'hubballi',
+              fontSize: 22,
+              fontWeight: FontWeight.bold,
+            ),
           ),
-          elevation: 10,
-          color: whiteShade,
-          child: ListTile(
-              leading: CircleAvatar(
-                  backgroundColor: blueShade,
-                  radius: 18,
-                  child: Icon(
-                    transaction.type == CategoryType.income
-                        ? Icons.arrow_downward
-                        : Icons.arrow_upward,
-                    color: transaction.type == CategoryType.income
-                        ? incomeColor
-                        : expenseColor,
-                    size: 22,
-                  )),
-              title: Text(
-                '₹${transaction.amount}',
-                style: TextStyle(
-                  color: blueShade,
-                  fontFamily: 'hubballi',
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              subtitle: Text(
-                transaction.category.name,
-                style: TextStyle(
-                  color: transaction.type == CategoryType.income
-                        ? incomeColor
-                        : expenseColor,
-                  fontFamily: 'hubballi',
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              trailing: Text(
-                parseDate(transaction.date),
-                style: TextStyle(
-                    fontFamily: 'hubballi',
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
-                    color: blueShade),
-              ))),
+          subtitle: Text(
+            transaction.category.name,
+            style: TextStyle(
+              color: transaction.type == CategoryType.income
+                  ? incomeColor
+                  : expenseColor,
+              fontFamily: 'hubballi',
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          trailing: Text(
+            parseDate(transaction.date),
+            style: TextStyle(
+                fontFamily: 'hubballi',
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
+                color: blueShade),
+          ),
+        ),
+      ),
     );
   }
 }

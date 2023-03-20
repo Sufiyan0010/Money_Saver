@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
-
-import 'package:money_saver/view/insights/all_graph.dart';
+import 'package:money_saver/controller/transactions_db/transaction_db.dart';
 import 'package:money_saver/models/category_model/category_model.dart';
 import 'package:money_saver/core/styles.dart';
+import 'package:provider/provider.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 
 import '../../models/transactions_model/transaction_model.dart';
@@ -16,33 +16,30 @@ class IncomeGraph extends StatelessWidget {
     return SafeArea(
       child: Scaffold(
         backgroundColor: bodyColor,
-        body: ValueListenableBuilder(
-          valueListenable: graphNotifier,
-          builder: (BuildContext context, List<TransactionModel> newList,
-              Widget? child) {
-            var allIncome = newList
+        body: Consumer<TransactionProvider>(
+          builder: (context, value, child) {
+            var allIncome = value.overviewGraphTransaction
                 .where((element) => element.type == CategoryType.income)
                 .toList();
-            return graphNotifier.value.isEmpty
+            return value.overviewGraphTransaction.isEmpty
                 ? SingleChildScrollView(
-                    child:Center(
+                    child: Center(
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                           Padding(
-                            padding: const EdgeInsets.only(top:150),
+                          Padding(
+                            padding: const EdgeInsets.only(top: 150),
                             child: Lottie.asset('assets/socialnodata.json',
                                 width: 200),
                           )
-                     
                         ],
                       ),
                     ),
                   )
                 : Padding(
-                  padding: const EdgeInsets.only(bottom:80),
-                  child: SfCircularChart(
-                     // backgroundColor: lightGreenShade,
+                    padding: const EdgeInsets.only(bottom: 80),
+                    child: SfCircularChart(
+                      // backgroundColor: lightGreenShade,
                       series: <CircularSeries>[
                         DoughnutSeries<TransactionModel, String>(
                             innerRadius: '100',
@@ -82,7 +79,7 @@ class IncomeGraph extends StatelessWidget {
                         overflowMode: LegendItemOverflowMode.scroll,
                       ),
                     ),
-                );
+                  );
           },
         ),
       ),

@@ -2,26 +2,18 @@ import 'package:flutter/material.dart';
 import 'package:money_saver/controller/category_db/category_db.dart';
 import 'package:money_saver/view/categories/expense.dart';
 import 'package:money_saver/view/categories/income.dart';
+import 'package:provider/provider.dart';
 
 import '../../core/styles.dart';
 import 'add_categories.dart';
 
-class Categories extends StatefulWidget {
+class Categories extends StatelessWidget {
   const Categories({super.key});
 
   @override
-  State<Categories> createState() => _CategoriesState();
-}
-
-class _CategoriesState extends State<Categories> {
-  @override
-  void initState() {
-    CategoryDB().refreshUI();
-    super.initState();
-  }
-
-  @override
   Widget build(BuildContext context) {
+    WidgetsBinding.instance.addPostFrameCallback((timeStamp) =>
+        Provider.of<CategoryProvider>(context, listen: false).refreshUI());
     return DefaultTabController(
         length: 2,
         child: Scaffold(

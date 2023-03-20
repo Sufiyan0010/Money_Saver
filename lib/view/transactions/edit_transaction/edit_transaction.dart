@@ -1,6 +1,8 @@
 import 'package:animated_snack_bar/animated_snack_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:money_saver/controller/transactions_db/add_transaction_provider.dart';
+import 'package:provider/provider.dart';
 
 import '../../../controller/category_db/category_db.dart';
 import '../../../controller/transactions_db/transaction_db.dart';
@@ -8,46 +10,48 @@ import '../../../models/category_model/category_model.dart';
 import '../../../models/transactions_model/transaction_model.dart';
 import '../../../core/styles.dart';
 
-class EditTransaction extends StatefulWidget {
-  const EditTransaction({
+class EditTransaction extends StatelessWidget {
+   EditTransaction({
     Key? key,
-    required this.obj,
+   required this.obj,
     this.id,
   }) : super(key: key);
 
   final String? id;
+
   final TransactionModel obj;
 
-  @override
-  State<EditTransaction> createState() => _EditTransactionState();
-}
-
-class _EditTransactionState extends State<EditTransaction> {
   TextEditingController amoutTextController = TextEditingController();
+
   TextEditingController purposeTextController = TextEditingController();
+
   final formKey = GlobalKey<FormState>();
+
   DateTime? selectedDate;
+
   CategoryType? selectedCategoryType;
+
   CategoryModel? selectedCategoryModel;
+
   String? categoryID;
-  int _value = 0;
 
-  @override
-  void initState() {
-    super.initState();
-    selectedCategoryType = CategoryType.income;
-    _value = widget.obj.type.index;
-    categoryID = widget.obj.category.id;
-    selectedCategoryModel = widget.obj.category;
-    selectedCategoryType = widget.obj.type;
-    selectedDate = widget.obj.date;
-    amoutTextController =
-        TextEditingController(text: widget.obj.amount.toString());
-    purposeTextController = TextEditingController(text: widget.obj.purpose);
-  }
 
+  // @override
   @override
   Widget build(BuildContext context) {
+    Provider.of<AddTransactionProvider>(context, listen: false).categoryId =
+        obj.category.id;
+    amoutTextController = TextEditingController(text: obj.amount.toString());
+    purposeTextController = TextEditingController(text: obj.purpose);
+    Provider.of<AddTransactionProvider>(context, listen: false)
+        .selectedDateTime = obj.date;
+    Provider.of<AddTransactionProvider>(context, listen: false)
+        .selectedCategoryType = obj.type;
+    Provider.of<AddTransactionProvider>(context, listen: false)
+        .selectedCategoryModel = obj.category;
+    Provider.of<AddTransactionProvider>(context, listen: false).value =
+        obj.type.index;
+
     return Scaffold(
       appBar: AppBar(
         elevation: 20,
@@ -72,44 +76,53 @@ class _EditTransactionState extends State<EditTransaction> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
-                  ChoiceChip(
-                    label: const Text(
-                      'Income',
-                    ),
-                    backgroundColor: whiteShade,
-                    selectedColor: const Color.fromARGB(255, 30, 217, 123),
-                    selected: _value == 0,
-                    labelStyle: TextStyle(
-                        color: blueShade,
-                        fontFamily: 'hubballi',
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold),
-                    onSelected: (bool selected) {
-                      setState(() {
-                        _value = 0;
-                        selectedCategoryType = CategoryType.income;
-                        categoryID = null;
-                      });
-                    },
-                  ),
-                  ChoiceChip(
-                    label: const Text(
-                      'Expense',
-                    ),
-                    backgroundColor: whiteShade,
-                    selectedColor: const Color.fromARGB(255, 255, 17, 17),
-                    selected: _value == 1,
-                    labelStyle: TextStyle(
-                        color: blueShade,
-                        fontFamily: 'hubballi',
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold),
-                    onSelected: (bool selected) {
-                      setState(() {
-                        _value = 1;
-                        selectedCategoryType = CategoryType.expense;
-                        categoryID = null;
-                      });
+                  Consumer<AddTransactionProvider>(
+                      builder: (context, provider, child) {
+                    return ChoiceChip(
+                      label: const Text(
+                        'Income',
+                      ),
+                      backgroundColor: whiteShade,
+                      selectedColor: const Color.fromARGB(255, 30, 217, 123),
+                      selected: provider.value == 0,
+                      labelStyle: TextStyle(
+                          color: blueShade,
+                          fontFamily: 'hubballi',
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold),
+                      onSelected: (bool selected) {
+                        provider.incomeChoiceChip();
+                        // setState(() {
+                        //   _value = 0;
+                        //   selectedCategoryType = CategoryType.income;
+                        //   categoryID = null;
+                        // });
+                      },
+                    );
+                  }),
+                  Consumer<AddTransactionProvider>(
+                    builder: (context, provider, child) {
+                      return ChoiceChip(
+                        label: const Text(
+                          'Expense',
+                        ),
+                        backgroundColor: whiteShade,
+                        selectedColor: const Color.fromARGB(255, 255, 17, 17),
+                        selected: provider.value == 1,
+                        labelStyle: TextStyle(
+                            color: blueShade,
+                            fontFamily: 'hubballi',
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold),
+                        onSelected: (bool selected) {
+                          provider.expenseChoiceChip();
+                          // setState(() {
+                          //   _value = 1;
+                          //   selectedCategoryType = CategoryType.expense;
+                          //   categoryID = null;
+                          // });
+                        },
+                      );
                     },
                   ),
                 ],
@@ -122,57 +135,61 @@ class _EditTransactionState extends State<EditTransaction> {
                     fontSize: 18,
                     fontWeight: FontWeight.bold),
               ),
-              DropdownButtonFormField<String>(
-                iconEnabledColor: greenShade,
-                iconSize: 20,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Required';
-                  }
-                  return null;
-                },
-                decoration: InputDecoration(
-                    errorBorder: const OutlineInputBorder(
-                      borderSide: BorderSide(color: Colors.red, width: 2),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                        borderSide: BorderSide(color: greenShade, width: 2)),
-                    focusedBorder: OutlineInputBorder(
-                      borderSide: BorderSide(color: greenShade, width: 2),
-                    )),
-                value: categoryID,
-                hint: Text(
-                  'Select Category',
-                  style: TextStyle(
-                      color: blueShade,
-                      fontFamily: 'hubballi',
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold),
-                ),
-                items: (selectedCategoryType == CategoryType.income
-                        ? CategoryDB().incomeCategoryListListener
-                        : CategoryDB().expenseCategoryListListener)
-                    .value
-                    .map((e) {
-                  return DropdownMenuItem(
-                    value: e.id,
-                    child: Text(
-                      e.name,
+              Consumer2<AddTransactionProvider, CategoryProvider>(
+                builder: (context, tProvider, cProvider, child) {
+                  return DropdownButtonFormField<String>(
+                    iconEnabledColor: greenShade,
+                    iconSize: 20,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Required';
+                      }
+                      return null;
+                    },
+                    decoration: InputDecoration(
+                        errorBorder: const OutlineInputBorder(
+                          borderSide: BorderSide(color: Colors.red, width: 2),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                            borderSide:
+                                BorderSide(color: greenShade, width: 2)),
+                        focusedBorder: OutlineInputBorder(
+                          borderSide: BorderSide(color: greenShade, width: 2),
+                        )),
+                    value: tProvider.categoryId,
+                    hint: Text(
+                      'Select Category',
                       style: TextStyle(
                           color: blueShade,
                           fontFamily: 'hubballi',
                           fontSize: 18,
                           fontWeight: FontWeight.bold),
                     ),
-                    onTap: () {
-                      selectedCategoryModel = e;
+                    items:
+                        (tProvider.selectedCategoryType == CategoryType.income
+                                ? cProvider.incomeCategoryProvider
+                                : cProvider.expenseCategoryProvider)
+                            .map((e) {
+                      return DropdownMenuItem(
+                        value: e.id,
+                        child: Text(
+                          e.name,
+                          style: TextStyle(
+                              color: blueShade,
+                              fontFamily: 'hubballi',
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold),
+                        ),
+                        onTap: () {
+                          context.read<CategoryProvider>().refreshUI();
+                          tProvider.selectedCategoryModel = e;
+                        },
+                      );
+                    }).toList(),
+                    onChanged: (selectedValue) {
+                      tProvider.categoryId = selectedValue;
                     },
                   );
-                }).toList(),
-                onChanged: (selectedValue) {
-                  setState(() {
-                    categoryID = selectedValue;
-                  });
                 },
               ),
               const SizedBox(
@@ -269,46 +286,44 @@ class _EditTransactionState extends State<EditTransaction> {
                   SizedBox(
                     width: 400,
                     height: 60,
-                    child: TextButton.icon(
-                      style: ElevatedButton.styleFrom(
-                        side: BorderSide(
-                          width: 2.0,
-                          color: greenShade,
-                        ),
-                      ),
-                      onPressed: () async {
-                        final selectedDateTemp = await showDatePicker(
-                            context: context,
-                            initialDate: DateTime.now(),
-                            firstDate: DateTime.now().subtract(const Duration(
-                              days: 30,
-                            )),
-                            lastDate: DateTime.now());
-                        if (selectedDateTemp == null) {
-                          return;
-                        } else {
-                          setState(() {
-                            selectedDate = selectedDateTemp;
-                          });
-                        }
+                    child: Consumer<AddTransactionProvider>(
+                      builder: (context, value, child) {
+                        return TextButton.icon(
+                          style: ElevatedButton.styleFrom(
+                            side: BorderSide(
+                              width: 2.0,
+                              color: greenShade,
+                            ),
+                          ),
+                          onPressed: () async {
+                            final selectedDateTemp = await showDatePicker(
+                                context: context,
+                                initialDate: DateTime.now(),
+                                firstDate:
+                                    DateTime.now().subtract(const Duration(
+                                  days: 30,
+                                )),
+                                lastDate: DateTime.now());
+                            value.dateSelection(selectedDateTemp);
+                             //context.read<AddTransactionProvider>().dateSelection(selectedDateTemp);
+                          },
+                          icon: Icon(
+                            Icons.calendar_month,
+                            color: greenShade,
+                          ),
+                          label: Padding(
+                            padding: const EdgeInsets.only(left: 8.0),
+                            child: Text(
+                              parseDtaeTime(value.selectedDateTime!),
+                              style: TextStyle(
+                                  color: blueShade,
+                                  fontFamily: 'hubballi',
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold),
+                            ),
+                          ),
+                        );
                       },
-                      icon: Icon(
-                        Icons.calendar_month,
-                        color: greenShade,
-                      ),
-                      label: Padding(
-                        padding: const EdgeInsets.only(left: 8.0),
-                        child: Text(
-                          selectedDate == null
-                              ? 'Select Date'
-                              : parseDtaeTime(selectedDate!),
-                          style: TextStyle(
-                              color: blueShade,
-                              fontFamily: 'hubballi',
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold),
-                        ),
-                      ),
                     ),
                   ),
                 ],
@@ -323,7 +338,7 @@ class _EditTransactionState extends State<EditTransaction> {
                   ),
                   onPressed: () {
                     if (formKey.currentState!.validate()) {
-                      updateTransaction();
+                      updateTransaction(context);
                     }
                   },
                   icon: Icon(
@@ -348,43 +363,73 @@ class _EditTransactionState extends State<EditTransaction> {
     );
   }
 
-  Future updateTransaction() async {
+  Future updateTransaction(context) async {
     final purposeText = purposeTextController.text;
     final amountText = amoutTextController.text;
     final parsedAmount = double.tryParse(amountText);
-    if (purposeText.isEmpty ||
-        amountText.isEmpty ||
-        categoryID == null ||
-        selectedDate == null ||
-        selectedCategoryModel == null ||
-        parsedAmount == null) {
+    // if (purposeText.isEmpty ||
+    //     amountText.isEmpty ||
+    //     categoryID == null ||
+    //     selectedDate == null ||
+    //     selectedCategoryModel == null ||
+    //     parsedAmount == null) {
+    //   return;
+    // }
+    if (amountText.isEmpty) {
       return;
     }
-    final modal = TransactionModel(
-      purpose: purposeText,
-      amount: parsedAmount,
-      date: selectedDate!,
-      type: selectedCategoryType!,
-      category: selectedCategoryModel!,
-      id: widget.obj.id,
-    );
-    await TransactionDb.instance.editTransaction(modal);
-    navigationSnackBar();
-    TransactionDb.instance.refresh();
-    CategoryDB.instance.refreshUI();
+    if (parsedAmount == null) {
+      return;
+    }
+    if (Provider.of<AddTransactionProvider>(context, listen: false)
+            .categoryId ==
+        null) {
+      return;
+    }
+    if (Provider.of<AddTransactionProvider>(context, listen: false)
+            .selectedCategoryType ==
+        null) {
+      return;
+    }
 
+    final modal = TransactionModel(
+      category: Provider.of<AddTransactionProvider>(context, listen: false)
+          .selectedCategoryModel!,
+      amount: parsedAmount,
+      purpose: purposeText,
+      date: Provider.of<AddTransactionProvider>(context, listen: false)
+          .selectedDateTime!,
+      type: Provider.of<AddTransactionProvider>(context, listen: false)
+          .selectedCategoryType!,
+      id: obj.id,
+
+      //purpose: purposeText,
+      // amount: parsedAmount,
+      // date: selectedDate!,
+      // type: selectedCategoryType!,
+      // category: selectedCategoryModel!,
+      // id: widget.obj.id,
+    );
+    // await TransactionDb.instance.editTransaction(modal);
+    
+    // TransactionDb.instance.refresh();
+    // CategoryDB.instance.refreshUI();
+
+    await Provider.of<TransactionProvider>(context, listen: false)
+        .editTransaction(modal);
+        navigationSnackBar(context);
   }
 
-  navigationSnackBar() {
+  navigationSnackBar(context) {
     Navigator.of(context).pop();
     AnimatedSnackBar.material(
       'Transaction Updated Successfully',
       borderRadius: BorderRadius.circular(20),
-      
+
       // mobileSnackBarPosition: MobileSnackBarPosition.top,
       type: AnimatedSnackBarType.success,
       mobileSnackBarPosition: MobileSnackBarPosition.bottom,
-     
+
       duration: const Duration(
         seconds: 4,
       ),

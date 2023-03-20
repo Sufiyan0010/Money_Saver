@@ -1,42 +1,31 @@
 import 'package:flutter/material.dart';
-import 'package:money_saver/controller/total_balance.dart';
-import 'package:money_saver/view/insights/all_graph.dart';
-import 'package:money_saver/models/transactions_model/transaction_model.dart';
+import 'package:money_saver/controller/transactions_db/transaction_db.dart';
 import 'package:money_saver/core/styles.dart';
+import 'package:provider/provider.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 
-class OnlyGraph extends StatefulWidget {
-  const OnlyGraph({super.key, required});
+class OnlyGraph extends StatelessWidget {
+   OnlyGraph({super.key, required});
 
-  @override
-  State<OnlyGraph> createState() => _OnlyGraphState();
-}
-
-class _OnlyGraphState extends State<OnlyGraph> {
   late TooltipBehavior _tooltipBehavior;
 
   @override
-  void initState() {
-    _tooltipBehavior = TooltipBehavior(enable: true);
-    super.initState();
-  }
-
-  @override
   Widget build(BuildContext context) {
-    return ValueListenableBuilder(
-      valueListenable: graphNotifier,
-      builder: (BuildContext context, List<TransactionModel> newList,
-          Widget? child) {
+     _tooltipBehavior = TooltipBehavior(enable: true);
+    return Consumer<TransactionProvider>(
+      
+      builder: ( context,  value,
+           child) {
         Map incomeMap = {
           'name': 'Income',
-          "amount": incomeTotal.value,
+          "amount": value.incomeTotal,
         };
         Map expenseMap = {
           "name": "Expense",
-          "amount": expenseTotal.value,
+          "amount": value.expenseTotal,
         };
         List<Map> totalMap = [incomeMap, expenseMap];
-        return graphNotifier.value.isEmpty
+        return value.overviewGraphTransaction.isEmpty
             ? SingleChildScrollView(
                 child: Center(
                   child: Column(

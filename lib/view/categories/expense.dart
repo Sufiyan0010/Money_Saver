@@ -2,8 +2,7 @@ import 'package:animated_snack_bar/animated_snack_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
 import 'package:money_saver/controller/category_db/category_db.dart';
-
-import '../../models/category_model/category_model.dart';
+import 'package:provider/provider.dart';
 import '../../core/styles.dart';
 
 class ExpenseScreen extends StatelessWidget {
@@ -11,10 +10,10 @@ class ExpenseScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ValueListenableBuilder(
-      valueListenable: CategoryDB().expenseCategoryListListener,
-      builder: ((BuildContext ctx, List<CategoryModel> newList, Widget? _) {
-        final temp = newList.reversed.toList();
+    return Consumer<CategoryProvider>(
+      //valueListenable: CategoryDB().expenseCategoryListListener,
+      builder: (( ctx, newList, child) {
+        final temp = newList.expenseCategoryProvider.reversed.toList();
         final newReversedList = temp.toSet().toList();
         return newReversedList.isEmpty
             ? Center(child: Lottie.asset('assets/nodatafound.json', width: 150))
@@ -42,10 +41,10 @@ class ExpenseScreen extends StatelessWidget {
                                   spreadRadius: .5,
                                   blurRadius: 1,
                                   color: Color.fromARGB(255, 88, 88, 88),
-                                  offset: Offset(3,3))
+                                  offset: Offset(3, 3))
                             ],
                             borderRadius: BorderRadius.circular(15),
-                            color: const Color.fromARGB(210, 253, 188, 188)),
+                            color: Color.fromARGB(210, 228, 193, 193)),
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.start,
                           crossAxisAlignment: CrossAxisAlignment.end,
@@ -86,9 +85,14 @@ class ExpenseScreen extends StatelessWidget {
                                         actions: [
                                           TextButton(
                                               onPressed: (() {
-                                                CategoryDB().deleteCategory(
-                                                  category.id,
-                                                );
+                                                context
+                                                    .read<CategoryProvider>()
+                                                    .deleteCategory(
+                                                        category.id);
+
+                                                // CategoryDB().deleteCategory(
+                                                //   category.id,
+                                                // );
                                                 Navigator.of(context).pop();
                                                 AnimatedSnackBar.material(
                                                   'Category Deleted Successfully',

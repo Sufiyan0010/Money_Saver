@@ -1,8 +1,8 @@
 import 'package:animated_snack_bar/animated_snack_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
+import 'package:provider/provider.dart';
 import '../../controller/category_db/category_db.dart';
-import '../../models/category_model/category_model.dart';
 import '../../core/styles.dart';
 
 class IncomeScreen extends StatelessWidget {
@@ -10,10 +10,10 @@ class IncomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ValueListenableBuilder(
-      valueListenable: CategoryDB().incomeCategoryListListener,
-      builder: ((BuildContext ctx, List<CategoryModel> newList, Widget? _) {
-        final temp = newList.reversed.toList();
+    return Consumer<CategoryProvider>(
+      //valueListenable: CategoryDB().incomeCategoryListListener,
+      builder: (( ctx,newList, child) {
+        final temp = newList.incomeCategoryProvider.reversed.toList();
         final newReversedList = temp.toSet().toList();
         return newReversedList.isEmpty
             ? Center(child: Lottie.asset('assets/nodatafound.json', width: 150))
@@ -85,9 +85,10 @@ class IncomeScreen extends StatelessWidget {
                                         actions: [
                                           TextButton(
                                               onPressed: (() {
-                                                CategoryDB().deleteCategory(
-                                                  category.id,
-                                                );
+                                                 context
+                                                    .read<CategoryProvider>()
+                                                    .deleteCategory(
+                                                        category.id);
                                                 Navigator.of(context).pop();
                                                 AnimatedSnackBar.material(
                                                   'Category Deleted Successfully',

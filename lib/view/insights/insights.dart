@@ -62,10 +62,10 @@ class _InsightsState extends State<Insights> {
                   Tab(text: 'EXPENSE')
                 ]),
           ),
-          body: const TabBarView(children: [
+          body:  TabBarView(children: [
             AllInsights(),
-            IncomeGraph(),
-            ExpenseGraph(),
+            const IncomeGraph(),
+            const ExpenseGraph(),
           ]),
         ));
   }

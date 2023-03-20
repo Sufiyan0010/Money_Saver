@@ -1,57 +1,45 @@
 import 'package:lottie/lottie.dart';
-import 'package:money_saver/controller/total_balance.dart';
 import 'package:money_saver/core/styles.dart';
-
+import 'package:provider/provider.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 import 'package:flutter/material.dart';
 import 'package:money_saver/controller/transactions_db/transaction_db.dart';
-import 'package:money_saver/models/transactions_model/transaction_model.dart';
 
-ValueNotifier<List<TransactionModel>> graphNotifier =
-    ValueNotifier(TransactionDb.instance.transactionListNotifier.value);
 
-class AllInsights extends StatefulWidget {
-  const AllInsights({super.key});
+// ValueNotifier<List<TransactionModel>> graphNotifier =
+//     ValueNotifier(TransactionDb.instance.transactionListNotifier.value);
 
-  @override
-  State<AllInsights> createState() => _AllInsightsState();
-}
+class AllInsights extends StatelessWidget {
+  AllInsights({super.key});
 
-class _AllInsightsState extends State<AllInsights> {
-  late TooltipBehavior _tooltipBehavior;
+  final TooltipBehavior _tooltipBehavior = TooltipBehavior(enable: true);
 
-  @override
-  void initState() {
-    _tooltipBehavior = TooltipBehavior(enable: true);
-    super.initState();
-  }
-
+  // @override
   @override
   Widget build(BuildContext context) {
     return SafeArea(
       child: Scaffold(
         backgroundColor: bodyColor,
-        body: ValueListenableBuilder(
-          valueListenable: graphNotifier,
-          builder: (BuildContext context, List<TransactionModel> newList,
-              Widget? child) {
+        body: Consumer<TransactionProvider>(
+          //valueListenable: graphNotifier,
+          builder: (context, value, child) {
             Map incomeMap = {
               'name': 'Income',
-              "amount": incomeTotal.value,
+              "amount": value.incomeTotal,
             };
             Map expenseMap = {
               "name": "Expense",
-              "amount": expenseTotal.value,
+              "amount": value.expenseTotal,
             };
             List<Map> totalMap = [incomeMap, expenseMap];
-            return graphNotifier.value.isEmpty
+            return value.overviewGraphTransaction.isEmpty
                 ? SingleChildScrollView(
                     child: Center(
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Padding(
-                            padding: const EdgeInsets.only(top:150),
+                            padding: const EdgeInsets.only(top: 150),
                             child: Lottie.asset('assets/socialnodata.json',
                                 width: 200),
                           )
